@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Video Downloader</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --border-color: #334155;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 640px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #a5b4fc, #6366f1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="url"] {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="url"]:focus {
+            border-color: var(--accent-color);
+        }
+
+        .btn-submit {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 0 24px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-submit:hover {
+            background: var(--accent-hover);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .option-card {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .option-card input[type="radio"] {
+            accent-color: var(--accent-color);
+        }
+
+        .option-label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* Status & Progress */
+        .status-container {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #0f172a;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent-color);
+            transition: width 0.3s;
+        }
+
+        .download-link {
+            display: inline-block;
+            margin-top: 16px;
+            background: var(--success-color);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+
+        .download-link:hover {
+            opacity: 0.9;
+        }
+
+        /* Supported Platforms Footer */
+        .platforms {
+            margin-top: 32px;
+            text-align: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .platforms span {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .badges {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 6px 14px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 480px) {
+            .input-group {
+                flex-direction: column;
+            }
+            .btn-submit {
+                padding: 14px;
+            }
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Universal Video Downloader</h1>
+        <p>Save high-quality videos & audio from your favorite platforms</p>
+    </div>
+
+    <form id="downloadForm" onsubmit="handleDownload(event)">
+        <div class="input-group">
+            <input type="url" id="videoUrl" placeholder="Paste link here (e.g. YouTube, Instagram, TikTok)..." required>
+            <button type="submit" class="btn-submit" id="submitBtn">Download</button>
+        </div>
+
+        <div class="options-grid">
+            <label class="option-card">
+                <input type="radio" name="format" value="video" checked>
+                <div class="option-label">MP4 Video (Best Quality)</div>
+            </label>
+            <label class="option-card">
+                <input type="radio" name="format" value="audio">
+                <div class="option-label">MP3 Audio (192kbps)</div>
+            </label>
+        </div>
+    </form>
+
+    <div class="status-container" id="statusContainer">
+        <p id="statusText" style="font-size: 14px; color: var(--text-secondary);"></p>
+        
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+
+        <div id="resultArea"></div>
+    </div>
+
+    <div class="platforms">
+        <span>Supported Platforms</span>
+        <div class="badges">
+            <div class="badge">YouTube</div>
+            <div class="badge">Instagram</div>
+            <div class="badge">TikTok</div>
+            <div class="badge">Twitter / X</div>
+            <div class="badge">Facebook</div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function handleDownload(e) {
+    e.preventDefault();
+
+    const url = document.getElementById('videoUrl').value.trim();
+    const format = document.querySelector('input[name="format"]:checked').value;
+    
+    const submitBtn = document.getElementById('submitBtn');
+    const statusContainer = document.getElementById('statusContainer');
+    const statusText = document.getElementById('statusText');
+    const progressFill = document.getElementById('progressFill');
+    const resultArea = document.getElementById('resultArea');
+
+    // UI Reset
+    submitBtn.disabled = true;
+    submitBtn.innerText = 'Processing...';
+    statusContainer.style.display = 'block';
+    statusText.innerText = 'Extracting media details from URL...';
+    statusText.style.color = 'var(--text-secondary)';
+    progressFill.style.width = '35%';
+    resultArea.innerHTML = '';
+
+    try {
+        const response = await fetch('/download', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, format })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            progressFill.style.width = '100%';
+            statusText.innerText = 'Download Ready!';
+            statusText.style.color = 'var(--success-color)';
+            
+            resultArea.innerHTML = `
+                <a href="${data.download_url}" class="download-link" download>
+                    Save File to Device
+                </a>
+            `;
+        } else {
+            progressFill.style.width = '0%';
+            statusText.innerText = 'Error: ' + data.error;
+            statusText.style.color = 'var(--error-color)';
+        }
+    } catch (err) {
+        progressFill.style.width = '0%';
+        statusText.innerText = 'Failed to connect to backend server.';
+        statusText.style.color = 'var(--error-color)';
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerText = 'Download';
+    }
+}
+</script>
+
+</body>
+</html>
